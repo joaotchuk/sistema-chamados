@@ -1,28 +1,27 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_paginate import Pagination, get_page_parameter
 from datetime import datetime
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = "chave_secreta"
 
-# Configuração do banco de dados SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chamados_ti.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Inicialização do sistema de login e criptografia
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# Modelos do banco de dados
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='solicitante')  # 'admin' or 'solicitante'
 
 class Chamado(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,7 +31,6 @@ class Chamado(db.Model):
     prioridade = db.Column(db.String(20), default="Média")
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
 
-# Inicializa o banco de dados
 with app.app_context():
     db.create_all()
 
@@ -40,7 +38,14 @@ with app.app_context():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Rota principal: lista todos os chamados
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/')
 @login_required
 def index():
@@ -48,7 +53,6 @@ def index():
     chamados = Chamado.query.paginate(page=page, per_page=5)
     return render_template('index.html', chamados=chamados.items, pagination=chamados)
 
-# Rota para criar um novo chamado
 @app.route('/novo', methods=['GET', 'POST'])
 @login_required
 def novo_chamado():
@@ -63,9 +67,9 @@ def novo_chamado():
         return redirect(url_for('index'))
     return render_template('novo_chamado.html')
 
-# Rota para atualizar o status de um chamado
 @app.route('/atualizar/<int:id>', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def atualizar_chamado(id):
     chamado = Chamado.query.get_or_404(id)
     if request.method == 'POST':
@@ -76,9 +80,9 @@ def atualizar_chamado(id):
         return redirect(url_for('index'))
     return render_template('atualizar_chamado.html', chamado=chamado)
 
-# Rota para excluir um chamado
 @app.route('/excluir/<int:id>')
 @login_required
+@admin_required
 def excluir_chamado(id):
     chamado = Chamado.query.get_or_404(id)
     db.session.delete(chamado)
@@ -86,20 +90,19 @@ def excluir_chamado(id):
     flash('Chamado excluído com sucesso!', 'success')
     return redirect(url_for('index'))
 
-# Rota de registro de usuário
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
         username = request.form['username']
         password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8')
-        novo_usuario = User(username=username, password=password)
+        role = request.form.get('role', 'solicitante')
+        novo_usuario = User(username=username, password=password, role=role)
         db.session.add(novo_usuario)
         db.session.commit()
         flash('Usuário registrado com sucesso!', 'success')
         return redirect(url_for('login'))
     return render_template('registro.html')
 
-# Rota de login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -114,7 +117,6 @@ def login():
             flash('Credenciais inválidas. Tente novamente.', 'danger')
     return render_template('login.html')
 
-# Rota de logout
 @app.route('/logout')
 @login_required
 def logout():
@@ -122,7 +124,26 @@ def logout():
     flash('Você saiu da conta.', 'info')
     return redirect(url_for('login'))
 
-# Tratamento de erros personalizados
+@app.route('/admin/usuarios')
+@login_required
+@admin_required
+def gerenciar_usuarios():
+    usuarios = User.query.all()
+    return render_template('usuarios.html', usuarios=usuarios)
+
+@app.route('/admin/alterar_role/<int:id>/<nova_role>')
+@login_required
+@admin_required
+def alterar_role(id, nova_role):
+    usuario = User.query.get_or_404(id)
+    if nova_role in ['admin', 'solicitante']:
+        usuario.role = nova_role
+        db.session.commit()
+        flash(f'Permissão do usuário "{usuario.username}" atualizada para {nova_role}.', 'success')
+    else:
+        flash('Permissão inválida.', 'danger')
+    return redirect(url_for('gerenciar_usuarios'))
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
@@ -131,6 +152,9 @@ def not_found_error(error):
 def internal_error(error):
     return render_template('500.html'), 500
 
+@app.errorhandler(403)
+def forbidden_error(error):
+    return "<h1>403 Acesso Negado</h1><p>Você não tem permissão para acessar esta página.</p>", 403
+
 if __name__ == '__main__':
     app.run(debug=True)
-
