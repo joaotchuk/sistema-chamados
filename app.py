@@ -10,10 +10,21 @@ app = Flask(__name__)
 app.secret_key = "chave_secreta"
 
 import os
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    'postgresql+psycopg2://banco_kyc2_user:BxhqNWYSEN9OviYkUTliitVQ94wQ0KVw@dpg-d0h1if6uk2gs73ccht1g-a/banco_kyc2'
+)
+
+
+
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+from flask_migrate import Migrate
+
+migrate = Migrate(app, db)
+
 
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
