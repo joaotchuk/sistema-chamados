@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<h1 class="text-center mb-4">Login</h1>
+<form method="POST" action="/login">
+    <div class="mb-3">
+        <label for="username" class="form-label">Usuário</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Senha</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Entrar</button>
+    </div>
+    <div class="text-center mt-3">
+        <a href="/registro" class="btn btn-link">Não tem uma conta? Registre-se</a>
+    </div>
+</form>
+{% endblock %}

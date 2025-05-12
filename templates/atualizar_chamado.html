@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Atualizar Chamado{% endblock %}
+{% block content %}
+<h1 class="text-center mb-4">Atualizar Chamado</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" name="status" class="form-select">
+            <option value="Aberto" {% if chamado.status == 'Aberto' %}selected{% endif %}>Aberto</option>
+            <option value="Em andamento" {% if chamado.status == 'Em andamento' %}selected{% endif %}>Em andamento</option>
+            <option value="Fechado" {% if chamado.status == 'Fechado' %}selected{% endif %}>Fechado</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="prioridade" class="form-label">Prioridade</label>
+        <select id="prioridade" name="prioridade" class="form-select">
+            <option value="Alta" {% if chamado.prioridade == 'Alta' %}selected{% endif %}>Alta</option>
+            <option value="Média" {% if chamado.prioridade == 'Média' %}selected{% endif %}>Média</option>
+            <option value="Baixa" {% if chamado.prioridade == 'Baixa' %}selected{% endif %}>Baixa</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Atualizar</button>
+    <a href="/" class="btn btn-secondary ms-2">Voltar</a>
+</form>
+{% endblock %}
