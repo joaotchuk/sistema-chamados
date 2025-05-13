@@ -15,10 +15,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'postgresql+psycopg2://banco_kyc2_user:BxhqNWYSEN9OviYkUTliitVQ94wQ0KVw@dpg-d0h1if6uk2gs73ccht1g-a.oregon-postgres.render.com:5432/banco_kyc2'
 )
 
-
-
-
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
