@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Gerenciar Usuários{% endblock %}
+{% block content %}
+<h1 class="text-center mb-4">Usuários Cadastrados</h1>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Usuário</th>
+            <th>Tipo de Acesso</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in usuarios %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                {% if user.role == 'admin' %}
+                    <a href="{{ url_for('alterar_role', id=user.id, nova_role='solicitante') }}" class="btn btn-warning btn-sm">Rebaixar</a>
+                {% else %}
+                    <a href="{{ url_for('alterar_role', id=user.id, nova_role='admin') }}" class="btn btn-success btn-sm">Tornar Admin</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="/" class="btn btn-secondary mt-3">Voltar para Chamados</a>
+{% endblock %}
