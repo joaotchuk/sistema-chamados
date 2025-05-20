@@ -1,10 +1,4 @@
-# Reexecutar após reset: criar o app_with_roles.py novamente
-
-from pathlib import Path
-
-updated_app_path = "/mnt/data/app_with_roles.py"
-
-app_with_roles_code = '''from flask import Flask, render_template, request, redirect, url_for, flash, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_paginate import Pagination, get_page_parameter
 from datetime import datetime
@@ -130,6 +124,13 @@ def logout():
     flash('Você saiu da conta.', 'info')
     return redirect(url_for('login'))
 
+@app.route('/usuarios')
+@login_required
+@admin_required
+def usuarios():
+    usuarios = User.query.all()
+    return render_template('usuarios_restrito.html', usuarios=usuarios)
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
@@ -140,11 +141,7 @@ def internal_error(error):
 
 @app.errorhandler(403)
 def forbidden_error(error):
-    return "<h1>403 Acesso Negado</h1><p>Você não tem permissão para acessar esta página.</p>", 403
+    return render_template('403.html'), 403
 
 if __name__ == '__main__':
     app.run(debug=True)
-'''
-
-Path(updated_app_path).write_text(app_with_roles_code)
-updated_app_path
