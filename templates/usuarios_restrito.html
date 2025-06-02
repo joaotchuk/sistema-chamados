@@ -1,33 +1,41 @@
-{% extends "base.html" %}
-{% block title %}Gerenciar Usuários{% endblock %}
-{% block content %}
-<h1 class="text-center mb-4">Usuários Cadastrados</h1>
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerenciar Usuários</title>
+</head>
+<body>
+  <h1>Usuários Cadastrados</h1>
 
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Usuário</th>
-            <th>Tipo de Acesso</th>
-            <th>Ação</th>
-        </tr>
+  <a href="/">⬅ Voltar para Chamados</a>
+  <br><br>
+  <a href="{{ url_for('receber_emails') }}">📩 Importar Chamados via E-mail</a>
+
+  <table border="1" cellpadding="10" cellspacing="0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username (E-mail)</th>
+        <th>Permissão</th>
+        <th>Ações</th>
+      </tr>
     </thead>
     <tbody>
-        {% for user in usuarios %}
+      {% for usuario in usuarios %}
         <tr>
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.role }}</td>
-            <td>
-                {% if user.role == 'admin' %}
-                    <a href="{{ url_for('alterar_role', id=user.id, nova_role='solicitante') }}" class="btn btn-warning btn-sm">Rebaixar</a>
-                {% else %}
-                    <a href="{{ url_for('alterar_role', id=user.id, nova_role='admin') }}" class="btn btn-success btn-sm">Tornar Admin</a>
-                {% endif %}
-            </td>
+          <td>{{ usuario.id }}</td>
+          <td>{{ usuario.username }}</td>
+          <td>{{ usuario.role }}</td>
+          <td>
+            {% if usuario.role == 'admin' %}
+              <a href="{{ url_for('alterar_role', id=usuario.id, nova_role='solicitante') }}">Rebaixar para Solicitante</a>
+            {% else %}
+              <a href="{{ url_for('alterar_role', id=usuario.id, nova_role='admin') }}">Promover para Admin</a>
+            {% endif %}
+          </td>
         </tr>
-        {% endfor %}
+      {% endfor %}
     </tbody>
-</table>
-<a href="/" class="btn btn-secondary mt-3">Voltar para Chamados</a>
-{% endblock %}
+  </table>
+</body>
+</html>
